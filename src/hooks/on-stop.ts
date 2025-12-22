@@ -1,5 +1,8 @@
 #!/usr/bin/env node
-import { readFile } from "fs/promises";
+import { readFile, writeFile, mkdir } from "fs/promises";
+import { existsSync } from "fs";
+import { join } from "path";
+import { homedir } from "os";
 import { loadConfig } from "../lib/config.js";
 import { playAlert } from "../lib/audio.js";
 import {
@@ -9,6 +12,35 @@ import {
 } from "../lib/summarize.js";
 import { getProvider } from "../tts/index.js";
 import type { StopHookInput, TranscriptMessage } from "../types.js";
+
+// Session deduplication to prevent multiple TTS plays
+const LOCK_DIR = join(homedir(), ".config", "herald", "locks");
+const LOCK_EXPIRY_MS = 10000; // 10 seconds
+
+async function acquireSessionLock(sessionId: string): Promise<boolean> {
+  if (!sessionId) return true; // No session ID, allow
+
+  const lockFile = join(LOCK_DIR, `${sessionId}.lock`);
+
+  try {
+    await mkdir(LOCK_DIR, { recursive: true });
+
+    // Check if lock exists and is recent
+    if (existsSync(lockFile)) {
+      const content = await readFile(lockFile, "utf-8");
+      const timestamp = parseInt(content, 10);
+      if (Date.now() - timestamp < LOCK_EXPIRY_MS) {
+        return false; // Lock is held
+      }
+    }
+
+    // Create/update lock
+    await writeFile(lockFile, String(Date.now()));
+    return true;
+  } catch {
+    return true; // On error, allow (fail open)
+  }
+}
 
 async function extractLastAssistantMessage(
   transcriptPath: string
@@ -37,19 +69,40 @@ async function extractLastAssistantMessage(
   return "Done";
 }
 
-async function readStdin(): Promise<string> {
+async function readStdin(timeoutMs: number = 5000): Promise<string> {
   return new Promise((resolve) => {
     let data = "";
+    let resolved = false;
+
+    const done = (result: string) => {
+      if (!resolved) {
+        resolved = true;
+        resolve(result);
+      }
+    };
+
+    // Timeout to prevent hanging if stdin never closes
+    const timeout = setTimeout(() => {
+      done(data);
+    }, timeoutMs);
+
     process.stdin.setEncoding("utf-8");
     process.stdin.on("data", (chunk) => {
       data += chunk;
     });
     process.stdin.on("end", () => {
-      resolve(data);
+      clearTimeout(timeout);
+      done(data);
     });
+    process.stdin.on("error", () => {
+      clearTimeout(timeout);
+      done(data);
+    });
+
     // Handle case where stdin is empty/closed
     if (process.stdin.isTTY) {
-      resolve("");
+      clearTimeout(timeout);
+      done("");
     }
   });
 }
@@ -69,6 +122,14 @@ async function main() {
     input = JSON.parse(stdinText);
   } catch {
     // No input or invalid JSON
+  }
+
+  // Prevent duplicate notifications for the same session
+  if (input.session_id) {
+    const gotLock = await acquireSessionLock(input.session_id);
+    if (!gotLock) {
+      process.exit(0); // Another instance already handling this session
+    }
   }
 
   switch (config.style) {
@@ -106,7 +167,9 @@ async function main() {
         }
       }
 
-      await ttsProvider.speak(finalText || "Done");
+      const textToSpeak = finalText || "Done";
+      console.log(`[Herald TTS] ${textToSpeak}`);
+      await ttsProvider.speak(textToSpeak);
       break;
     }
 
