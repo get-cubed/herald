@@ -42,7 +42,8 @@ export async function summarizeWithClaude(
   return new Promise((resolve) => {
     try {
       // Use stdin to pass prompt to avoid shell escaping issues
-      const proc = spawn("claude", ["--print", "--tools", ""], {
+      // Use haiku for fast, cheap summarization
+      const proc = spawn("claude", ["--print", "--model", "haiku"], {
         stdio: ["pipe", "pipe", "pipe"],
       });
 
