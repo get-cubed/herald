@@ -7,25 +7,22 @@ import { loadConfig } from "../lib/config.js";
 import { playAlert } from "../lib/audio.js";
 import { cleanForSpeech, truncateToWords, summarizeWithClaude, } from "../lib/summarize.js";
 import { getProvider } from "../tts/index.js";
-// Session deduplication to prevent multiple TTS plays
-const LOCK_DIR = join(homedir(), ".config", "herald", "locks");
-const LOCK_EXPIRY_MS = 10000; // 10 seconds
-async function acquireSessionLock(sessionId) {
-    if (!sessionId)
-        return true; // No session ID, allow
-    const lockFile = join(LOCK_DIR, `${sessionId}.lock`);
+// Global TTS lock to prevent multiple plays (regardless of session ID)
+const LOCK_FILE = join(homedir(), ".config", "herald", "tts.lock");
+const LOCK_EXPIRY_MS = 5000; // 5 seconds - prevents duplicate plays within this window
+async function acquireGlobalLock() {
     try {
-        await mkdir(LOCK_DIR, { recursive: true });
+        await mkdir(join(homedir(), ".config", "herald"), { recursive: true });
         // Check if lock exists and is recent
-        if (existsSync(lockFile)) {
-            const content = await readFile(lockFile, "utf-8");
+        if (existsSync(LOCK_FILE)) {
+            const content = await readFile(LOCK_FILE, "utf-8");
             const timestamp = parseInt(content, 10);
             if (Date.now() - timestamp < LOCK_EXPIRY_MS) {
-                return false; // Lock is held
+                return false; // Lock is held by another instance
             }
         }
         // Create/update lock
-        await writeFile(lockFile, String(Date.now()));
+        await writeFile(LOCK_FILE, String(Date.now()));
         return true;
     }
     catch {
@@ -111,14 +108,12 @@ async function main() {
         // No input or invalid JSON
     }
     await log(`session_id: ${input.session_id}`);
-    // Prevent duplicate notifications for the same session
-    if (input.session_id) {
-        const gotLock = await acquireSessionLock(input.session_id);
-        await log(`lock result: ${gotLock}`);
-        if (!gotLock) {
-            await log("lock held, exiting");
-            process.exit(0); // Another instance already handling this session
-        }
+    // Prevent duplicate TTS plays (global lock, not per-session)
+    const gotLock = await acquireGlobalLock();
+    await log(`lock result: ${gotLock}`);
+    if (!gotLock) {
+        await log("lock held by another instance, exiting");
+        process.exit(0);
     }
     switch (config.style) {
         case "tts": {
