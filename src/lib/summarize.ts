@@ -36,20 +36,25 @@ export async function summarizeWithClaude(
   customPrompt?: string | null
 ): Promise<string | null> {
   const prompt = customPrompt
-    ? `${customPrompt}\n\nKeep response under ${maxWords} words.\n\nText:\n`
-    : DEFAULT_TTS_PROMPT.replace("{max_words}", String(maxWords));
-
-  const fullPrompt = prompt + text;
+    ? `${customPrompt}\n\nKeep response under ${maxWords} words.\n\nText:\n${text}`
+    : DEFAULT_TTS_PROMPT.replace("{max_words}", String(maxWords)) + text;
 
   return new Promise((resolve) => {
     try {
-      const proc = spawn("claude", ["-p", fullPrompt, "--tools", ""], {
-        stdio: ["ignore", "pipe", "pipe"],
+      // Use stdin to pass prompt to avoid shell escaping issues
+      const proc = spawn("claude", ["--print", "--tools", ""], {
+        stdio: ["pipe", "pipe", "pipe"],
       });
 
       let output = "";
+      let stderr = "";
+
       proc.stdout.on("data", (data: Buffer) => {
         output += data.toString();
+      });
+
+      proc.stderr.on("data", (data: Buffer) => {
+        stderr += data.toString();
       });
 
       proc.on("close", (code) => {
@@ -63,6 +68,10 @@ export async function summarizeWithClaude(
       proc.on("error", () => {
         resolve(null);
       });
+
+      // Write prompt to stdin and close it
+      proc.stdin.write(prompt);
+      proc.stdin.end();
     } catch {
       resolve(null);
     }
