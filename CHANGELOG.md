@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.3.0](https://github.com/get-cubed/herald/compare/v1.2.0...v1.3.0) (2025-12-23)
+
+
+### Features
+
+* improve cross-platform support and plugin metadata ([#9](https://github.com/get-cubed/herald/issues/9)) ([a7cc82f](https://github.com/get-cubed/herald/commit/a7cc82f13c4236a5073834081286f9e98e0be5fa))
+
 ## [1.2.0](https://github.com/get-cubed/herald/compare/v1.1.0...v1.2.0) (2025-12-23)
 
 
