@@ -5,6 +5,11 @@
 <h1 align="center">Herald</h1>
 
 <p align="center">
+  <a href="https://github.com/get-cubed/herald/releases"><img src="https://img.shields.io/github/v/release/get-cubed/herald" alt="GitHub release"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
+</p>
+
+<p align="center">
   <strong>Configurable notifications for Claude Code</strong><br>
   TTS or alert sounds — you choose.
 </p>
