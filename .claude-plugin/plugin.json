@@ -3,6 +3,5 @@
   "version": "1.0.0",
   "description": "Configurable notifications when Claude finishes - TTS, alert sounds, or silent",
   "license": "MIT",
-  "keywords": ["notifications", "alerts", "tts", "text-to-speech", "sounds"],
-  "hooks": "./hooks/hooks.json"
+  "keywords": ["notifications", "alerts", "tts", "text-to-speech", "sounds"]
 }
