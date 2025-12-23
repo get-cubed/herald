@@ -7,7 +7,7 @@ async function showStatus() {
     console.log("TTS provider configuration:");
     console.log(`  provider: ${config.tts.provider}`);
     if (config.tts.provider === "elevenlabs") {
-        console.log(`  api_key: ${config.tts.elevenlabs?.apiKey ? "****" + config.tts.elevenlabs.apiKey.slice(-4) : "(not set)"}`);
+        console.log(`  api_key: ${config.tts.elevenlabs?.apiKey ? "(configured)" : "(not set)"}`);
         console.log(`  voice_id: ${config.tts.elevenlabs?.voiceId || "(not set)"}`);
     }
 }
