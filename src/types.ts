@@ -10,7 +10,7 @@ export interface TTSProviderConfig {
 
 export interface HeraldConfig {
   enabled: boolean;
-  style: "tts" | "alerts" | "silent";
+  style: "tts" | "alerts";
   tts: TTSProviderConfig;
   preferences: {
     max_words: number;

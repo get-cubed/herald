@@ -164,9 +164,8 @@ async function main() {
             }
             break;
         }
-        case "silent":
         default:
-            // Do nothing
+            // Unknown style, do nothing
             break;
     }
 }

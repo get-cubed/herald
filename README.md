@@ -21,12 +21,17 @@
 
 ## Installation
 
-```bash
-# Add the marketplace
+Run these commands in Claude Code:
+
+```
+# Add the marketplace (one-time setup)
 /plugin marketplace add get-cubed/agora
 
 # Install herald
 /plugin install herald@agora
+
+# Enable TTS notifications
+/herald:style tts
 ```
 
 ## Commands
@@ -36,7 +41,7 @@
 | `/herald:enable` | Enable notifications |
 | `/herald:disable` | Disable notifications |
 | `/herald:status` | Show current configuration |
-| `/herald:style <tts\|alerts\|silent>` | Set notification style |
+| `/herald:style <tts\|alerts>` | Set notification style |
 | `/herald:preferences` | Configure TTS settings (max words, custom prompts, editor activation) |
 | `/herald:tts` | Configure TTS provider |
 
@@ -44,9 +49,10 @@
 
 - **`tts`** — Text-to-speech reads a summary of the response, then activates VS Code
 - **`alerts`** — Plays a sound and activates VS Code
-- **`silent`** — No notifications
 
-Both `tts` and `alerts` modes activate the editor by default. Disable with `/herald:preferences activate_editor off`.
+Both modes activate the editor by default. Disable with `/herald:preferences activate_editor off`.
+
+Use `/herald:disable` to turn off notifications entirely.
 
 ## TTS Providers
 

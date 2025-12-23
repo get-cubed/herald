@@ -20,7 +20,7 @@ async function readStdin() {
 }
 async function main() {
     const config = await loadConfig();
-    if (!config.enabled || config.style === "silent") {
+    if (!config.enabled) {
         process.exit(0);
     }
     // Read hook input from stdin

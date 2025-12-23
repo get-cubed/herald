@@ -24,7 +24,7 @@ async function readStdin(): Promise<string> {
 async function main() {
   const config = await loadConfig();
 
-  if (!config.enabled || config.style === "silent") {
+  if (!config.enabled) {
     process.exit(0);
   }
 
