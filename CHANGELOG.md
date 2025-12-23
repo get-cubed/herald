@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.4.0](https://github.com/get-cubed/herald/compare/v1.3.0...v1.4.0) (2025-12-23)
+
+
+### Features
+
+* improve cross-platform support and ElevenLabs model update ([#11](https://github.com/get-cubed/herald/issues/11)) ([8302fd5](https://github.com/get-cubed/herald/commit/8302fd569f6f1e523d010bbdb8d1fed02c868d4f))
+
 ## [1.3.0](https://github.com/get-cubed/herald/compare/v1.2.0...v1.3.0) (2025-12-23)
 
 
