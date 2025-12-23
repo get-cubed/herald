@@ -7,6 +7,7 @@ export const DEFAULT_CONFIG = {
     preferences: {
         max_words: 50,
         summary_prompt: null,
+        activate_editor: true,
     },
 };
 export const DEFAULT_TTS_PROMPT = `You are a TTS summarizer. Output ONLY the summary, no preamble.

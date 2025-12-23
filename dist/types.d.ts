@@ -13,6 +13,7 @@ export interface HeraldConfig {
     preferences: {
         max_words: number;
         summary_prompt: string | null;
+        activate_editor: boolean;
     };
 }
 export interface StopHookInput {

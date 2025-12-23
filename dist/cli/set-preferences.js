@@ -5,6 +5,7 @@ if (!args || args === "show") {
     const config = await loadConfig();
     console.log("Herald TTS preferences:");
     console.log(`  max_words: ${config.preferences.max_words}`);
+    console.log(`  activate_editor: ${config.preferences.activate_editor}`);
     if (config.preferences.summary_prompt) {
         console.log(`  summary: "${config.preferences.summary_prompt}"`);
     }
@@ -48,5 +49,21 @@ if (args === "summary clear" || args === "clear summary") {
     console.log("Summary prompt cleared (using default)");
     process.exit(0);
 }
-console.error("Unknown option. Use: show, max_words <number>, summary <prompt>, or summary clear");
+if (args === "activate_editor on" || args === "activate_editor true") {
+    const config = await loadConfig();
+    await saveConfig({
+        preferences: { ...config.preferences, activate_editor: true },
+    });
+    console.log("Editor activation enabled");
+    process.exit(0);
+}
+if (args === "activate_editor off" || args === "activate_editor false") {
+    const config = await loadConfig();
+    await saveConfig({
+        preferences: { ...config.preferences, activate_editor: false },
+    });
+    console.log("Editor activation disabled");
+    process.exit(0);
+}
+console.error("Unknown option. Use: show, max_words <number>, summary <prompt>, summary clear, activate_editor on/off");
 process.exit(1);

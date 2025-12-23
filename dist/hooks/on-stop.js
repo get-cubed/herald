@@ -4,7 +4,7 @@ import { existsSync } from "fs";
 import { join, basename } from "path";
 import { homedir } from "os";
 import { loadConfig } from "../lib/config.js";
-import { playAlert } from "../lib/audio.js";
+import { playAlert, activateEditor } from "../lib/audio.js";
 import { cleanForSpeech, truncateToWords, summarizeWithClaude, } from "../lib/summarize.js";
 import { getProvider } from "../tts/index.js";
 // Global TTS lock to prevent multiple plays (regardless of session ID)
@@ -146,11 +146,22 @@ async function main() {
             await log(`speaking: ${textToSpeak}`);
             await ttsProvider.speak(textToSpeak);
             await log("speech complete");
+            if (config.preferences.activate_editor) {
+                const projectName = input.cwd ? basename(input.cwd) : undefined;
+                activateEditor(projectName);
+            }
             break;
         }
         case "alerts": {
             const projectName = input.cwd ? basename(input.cwd) : undefined;
-            playAlert(projectName);
+            if (config.preferences.activate_editor) {
+                playAlert(projectName);
+            }
+            else {
+                // Just play sound without activating editor
+                const { playSound } = await import("../lib/audio.js");
+                playSound("alert");
+            }
             break;
         }
         case "silent":

@@ -15,6 +15,7 @@ export interface HeraldConfig {
   preferences: {
     max_words: number;
     summary_prompt: string | null;
+    activate_editor: boolean;
   };
 }
 
@@ -46,6 +47,7 @@ export const DEFAULT_CONFIG: HeraldConfig = {
   preferences: {
     max_words: 50,
     summary_prompt: null,
+    activate_editor: true,
   },
 };
 

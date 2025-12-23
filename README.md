@@ -37,14 +37,16 @@
 | `/herald:disable` | Disable notifications |
 | `/herald:status` | Show current configuration |
 | `/herald:style <tts\|alerts\|silent>` | Set notification style |
-| `/herald:preferences` | Configure TTS settings (max words, custom prompts) |
+| `/herald:preferences` | Configure TTS settings (max words, custom prompts, editor activation) |
 | `/herald:tts` | Configure TTS provider |
 
 ## Notification Styles
 
-- **`tts`** — Text-to-speech reads a summary of the response
+- **`tts`** — Text-to-speech reads a summary of the response, then activates VS Code
 - **`alerts`** — Plays a sound and activates VS Code
 - **`silent`** — No notifications
+
+Both `tts` and `alerts` modes activate the editor by default. Disable with `/herald:preferences activate_editor off`.
 
 ## TTS Providers
 
@@ -75,7 +77,8 @@ Herald stores its configuration in `~/.config/herald/config.json`:
   },
   "preferences": {
     "max_words": 50,
-    "summary_prompt": null
+    "summary_prompt": null,
+    "activate_editor": true
   }
 }
 ```

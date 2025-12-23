@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import { basename } from "path";
 import { loadConfig } from "../lib/config.js";
-import { playPing } from "../lib/audio.js";
+import { playPing, activateEditor } from "../lib/audio.js";
 import { getProvider } from "../tts/index.js";
 async function readStdin() {
     return new Promise((resolve) => {
@@ -44,11 +44,21 @@ async function main() {
                 ? "Claude needs permission"
                 : "Claude is waiting for input";
             await ttsProvider.speak(message);
+            if (config.preferences.activate_editor) {
+                const projectName = input.cwd ? basename(input.cwd) : undefined;
+                activateEditor(projectName);
+            }
             break;
         }
         case "alerts": {
             const projectName = input.cwd ? basename(input.cwd) : undefined;
-            playPing(projectName);
+            if (config.preferences.activate_editor) {
+                playPing(projectName);
+            }
+            else {
+                const { playSound } = await import("../lib/audio.js");
+                playSound("ping");
+            }
             break;
         }
     }
