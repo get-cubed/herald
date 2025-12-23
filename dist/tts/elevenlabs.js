@@ -8,7 +8,10 @@ import { randomUUID } from "crypto";
  * Requires an API key and voice ID to be configured.
  *
  * Uses native Node.js fetch (Node 18+) to call the ElevenLabs API,
- * then plays the audio using afplay (macOS) or aplay (Linux).
+ * then plays the audio using platform-specific players:
+ * - macOS: afplay
+ * - Windows: PowerShell with Windows Media Player
+ * - Linux: mpv (install with: sudo apt install mpv)
  */
 export class ElevenLabsTTSProvider {
     name = "ElevenLabs";
@@ -51,11 +54,37 @@ export class ElevenLabsTTSProvider {
             const tempFile = join(tmpdir(), `herald-${randomUUID()}.mp3`);
             await writeFile(tempFile, audioBuffer);
             await new Promise((resolve) => {
-                // Use afplay on macOS, aplay on Linux
-                const player = process.platform === "darwin" ? "afplay" : "aplay";
-                const proc = spawn(player, [tempFile], {
-                    stdio: "ignore",
-                });
+                const platform = process.platform;
+                let proc;
+                if (platform === "darwin") {
+                    // macOS: use afplay
+                    proc = spawn("afplay", [tempFile], { stdio: "ignore" });
+                }
+                else if (platform === "win32") {
+                    // Windows: use Windows Media Player COM object for MP3 support
+                    const escapedPath = tempFile.replace(/'/g, "''");
+                    const script = `
+            Add-Type -AssemblyName presentationCore
+            $player = New-Object System.Windows.Media.MediaPlayer
+            $player.Open('${escapedPath}')
+            $player.Play()
+            Start-Sleep -Milliseconds 100
+            while ($player.NaturalDuration.HasTimeSpan -eq $false -or $player.Position -lt $player.NaturalDuration.TimeSpan) {
+              Start-Sleep -Milliseconds 100
+            }
+            $player.Close()
+          `;
+                    proc = spawn("powershell", ["-Command", script], {
+                        stdio: "ignore",
+                        shell: true,
+                    });
+                }
+                else {
+                    // Linux: use mpv (supports MP3, widely available)
+                    proc = spawn("mpv", ["--no-video", "--really-quiet", tempFile], {
+                        stdio: "ignore",
+                    });
+                }
                 proc.on("close", () => {
                     // Clean up temp file
                     unlink(tempFile).catch(() => { });

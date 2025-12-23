@@ -5,7 +5,10 @@ import type { ITTSProvider } from "./provider.js";
  * Requires an API key and voice ID to be configured.
  *
  * Uses native Node.js fetch (Node 18+) to call the ElevenLabs API,
- * then plays the audio using afplay (macOS) or aplay (Linux).
+ * then plays the audio using platform-specific players:
+ * - macOS: afplay
+ * - Windows: PowerShell with Windows Media Player
+ * - Linux: mpv (install with: sudo apt install mpv)
  */
 export declare class ElevenLabsTTSProvider implements ITTSProvider {
     readonly name = "ElevenLabs";

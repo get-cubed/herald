@@ -61,7 +61,7 @@ if (!command || command === "show") {
 else if (command === "provider") {
     const provider = args[1];
     if (!provider) {
-        console.error("Error: Specify a provider (macos, elevenlabs)");
+        console.error("Error: Specify a provider (macos, windows, elevenlabs)");
         process.exit(1);
     }
     await setProvider(provider);

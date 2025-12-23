@@ -3,6 +3,12 @@
   "version": "1.2.0",
   "description": "Configurable notifications when Claude finishes - TTS or alert sounds",
   "license": "MIT",
+  "author": {
+    "name": "Cubed Technologies",
+    "url": "https://github.com/get-cubed"
+  },
+  "repository": "https://github.com/get-cubed/herald",
+  "homepage": "https://github.com/get-cubed/herald#readme",
   "keywords": [
     "notifications",
     "alerts",
