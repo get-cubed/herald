@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.4.1](https://github.com/get-cubed/herald/compare/v1.4.0...v1.4.1) (2025-12-23)
+
+
+### Bug Fixes
+
+* instruct TTS summarizer to skip URLs ([#16](https://github.com/get-cubed/herald/issues/16)) ([b0e07a5](https://github.com/get-cubed/herald/commit/b0e07a54dd0fa62059731a8e28b3e4f3cb0224fc))
+* use atomic file locking to prevent duplicate TTS plays ([#13](https://github.com/get-cubed/herald/issues/13)) ([1d571bf](https://github.com/get-cubed/herald/commit/1d571bff7b9858967ae75dbed77c214599dbe249))
+
 ## [1.4.0](https://github.com/get-cubed/herald/compare/v1.3.0...v1.4.0) (2025-12-23)
 
 
