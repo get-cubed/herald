@@ -5,7 +5,7 @@
 <h1 align="center">Herald</h1>
 
 <p align="center">
-  <a href="https://github.com/get-cubed/herald/releases"><img src="https://img.shields.io/github/v/release/get-cubed/herald" alt="GitHub release"></a>
+  <a href="https://github.com/al3xjohnson/herald/releases"><img src="https://img.shields.io/github/v/release/al3xjohnson/herald" alt="GitHub release"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
 </p>
 
@@ -28,13 +28,7 @@
 Run these commands in Claude Code:
 
 ```
-# Add the marketplace (one-time setup)
-/plugin marketplace add get-cubed/agora
-
-# Install herald
-/plugin install herald@agora
-
-# Enable TTS notifications
+/plugin install al3xjohnson/herald
 /herald:style tts
 ```
 

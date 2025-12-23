@@ -4,11 +4,11 @@
   "description": "Configurable notifications when Claude finishes - TTS or alert sounds",
   "license": "MIT",
   "author": {
-    "name": "Cubed Technologies",
-    "url": "https://github.com/get-cubed"
+    "name": "Alex Johnson",
+    "url": "https://github.com/al3xjohnson"
   },
-  "repository": "https://github.com/get-cubed/herald",
-  "homepage": "https://github.com/get-cubed/herald#readme",
+  "repository": "https://github.com/al3xjohnson/herald",
+  "homepage": "https://github.com/al3xjohnson/herald#readme",
   "keywords": [
     "notifications",
     "alerts",
