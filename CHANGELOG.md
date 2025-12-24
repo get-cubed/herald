@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.7.0](https://github.com/al3xjohnson/herald/compare/v1.6.0...v1.7.0) (2025-12-24)
+
+
+### Features
+
+* activate editor before TTS playback ([#23](https://github.com/al3xjohnson/herald/issues/23)) ([fe7e17e](https://github.com/al3xjohnson/herald/commit/fe7e17ec8552e53bd16dc49fb213f6325b252eda))
+
 ## [1.6.0](https://github.com/al3xjohnson/herald/compare/v1.5.0...v1.6.0) (2025-12-24)
 
 
