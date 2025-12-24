@@ -1,4 +1,9 @@
 # Changelog
+## [1.9.0](https://github.com/al3xjohnson/herald/compare/v1.8.2...v1.9.0) (2025-12-24)
+
+
+### Features
+* add configuration skill for Herald setup guidance ([3082fce](https://github.com/al3xjohnson/herald/commit/3082fce))
 ## [1.8.2](https://github.com/al3xjohnson/herald/compare/v1.8.1...v1.8.2) (2025-12-24)
 
 
