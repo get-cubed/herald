@@ -127,6 +127,10 @@ async function main() {
             const ttsProvider = getProvider(config.tts);
             const transcriptPath = input.transcript_path;
             if (!transcriptPath) {
+                if (config.preferences.activate_editor) {
+                    const projectName = input.cwd ? basename(input.cwd) : undefined;
+                    activateEditor(projectName);
+                }
                 await withMediaControl(() => ttsProvider.speak("Done"));
                 break;
             }
@@ -150,11 +154,11 @@ async function main() {
                 }
             }
             const textToSpeak = finalText || "Done";
-            await withMediaControl(() => ttsProvider.speak(textToSpeak));
             if (config.preferences.activate_editor) {
                 const projectName = input.cwd ? basename(input.cwd) : undefined;
                 activateEditor(projectName);
             }
+            await withMediaControl(() => ttsProvider.speak(textToSpeak));
             break;
         }
         case "alerts": {
