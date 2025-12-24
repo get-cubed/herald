@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.5.0](https://github.com/al3xjohnson/herald/compare/v1.4.1...v1.5.0) (2025-12-24)
+
+
+### Features
+
+* add PreToolUse hook for Write/Edit/MultiEdit alerts ([#19](https://github.com/al3xjohnson/herald/issues/19)) ([1054927](https://github.com/al3xjohnson/herald/commit/10549271f4d548a351b902881d3cf244f2333513))
+* smart editor activation and cleanup ([#18](https://github.com/al3xjohnson/herald/issues/18)) ([db9030a](https://github.com/al3xjohnson/herald/commit/db9030a6c85fb74ac95f1bb2e6d450163e147a54))
+
 ## [1.4.1](https://github.com/al3xjohnson/herald/compare/v1.4.0...v1.4.1) (2025-12-23)
 
 
