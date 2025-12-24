@@ -27,10 +27,21 @@
 
 ## Installation
 
-Run these commands in Claude Code:
+### From Marketplace
 
 ```
 /plugin install al3xjohnson/agora/herald
+```
+
+### Standalone
+
+```
+/plugin install al3xjohnson/herald
+```
+
+Then configure your preferred notification style:
+
+```
 /herald:style tts
 ```
 
