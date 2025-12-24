@@ -1,20 +1,4 @@
 # Changelog
-## [1.11.3](https://github.com/al3xjohnson/herald/compare/v1.11.2...v1.11.3) (2025-12-24)
-
-
-### Bug Fixes
-* add root-level plugin.json for marketplace discovery ([812a447](https://github.com/al3xjohnson/herald/commit/812a447))
-## [1.11.2](https://github.com/al3xjohnson/herald/compare/v1.11.1...v1.11.2) (2025-12-24)
-
-
-### Bug Fixes
-* update version-bump workflow for new plugin.json path ([74d32ec](https://github.com/al3xjohnson/herald/commit/74d32ec))
-* move plugin.json to .claude-plugin directory for proper discovery ([f7644ea](https://github.com/al3xjohnson/herald/commit/f7644ea))
-## [1.11.1](https://github.com/al3xjohnson/herald/compare/v1.11.0...v1.11.1) (2025-12-24)
-
-
-### Bug Fixes
-* update CI workflows for new plugin/ directory structure ([950ea99](https://github.com/al3xjohnson/herald/commit/950ea99))
 ## [1.11.0](https://github.com/al3xjohnson/herald/compare/v1.10.1...v1.11.0) (2025-12-24)
 
 

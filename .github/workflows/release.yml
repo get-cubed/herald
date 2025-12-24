@@ -69,7 +69,11 @@ jobs:
         run: |
           VERSION="${{ steps.version-check.outputs.version }}"
           mkdir -p release-staging
-          cp -r plugin/* release-staging/
+          cp -r dist release-staging/
+          cp -r commands release-staging/
+          cp -r hooks release-staging/
+          cp -r .claude-plugin release-staging/
+          cp package.json release-staging/
           cp README.md release-staging/
           cp LICENSE release-staging/
           cd release-staging
