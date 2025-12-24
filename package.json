@@ -1,6 +1,6 @@
 {
   "name": "herald",
-  "version": "1.9.1",
+  "version": "1.10.0",
   "description": "Configurable notifications for Claude Code - TTS or alert sounds",
   "type": "module",
   "keywords": [
@@ -46,6 +46,7 @@
     "@types/node": "^20.0.0",
     "@typescript-eslint/eslint-plugin": "^8.50.1",
     "@typescript-eslint/parser": "^8.50.1",
+    "@vitest/coverage-v8": "^4.0.16",
     "eslint": "^9.39.2",
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-prettier": "^5.5.4",
@@ -55,6 +56,6 @@
     "vitest": "^4.0.16"
   },
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">=20.0.0"
   }
 }

@@ -21,7 +21,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
           cache: "npm"
 
       - name: Install dependencies
@@ -47,17 +47,78 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
           cache: "npm"
 
       - name: Install dependencies
         run: npm ci
 
-      - name: Run tests
-        run: npm test
-
-      - name: Test coverage
+      - name: Test with coverage
         run: npm run test:coverage
+
+      - name: Coverage summary
+        run: |
+          node -e "
+            const data = require('./coverage/coverage-summary.json');
+            const total = data.total;
+
+            // Helper to get coverage indicator
+            const indicator = (pct) => pct >= 80 ? '🟢' : pct >= 50 ? '🟡' : '🔴';
+            const fmt = (pct) => indicator(pct) + ' ' + pct.toFixed(1) + '%';
+
+            console.log('## Coverage Report');
+            console.log('');
+            console.log('### Overall');
+            console.log('');
+            console.log('| Metric | Coverage |');
+            console.log('|--------|----------|');
+            console.log('| Statements | ' + fmt(total.statements.pct) + ' |');
+            console.log('| Branches | ' + fmt(total.branches.pct) + ' |');
+            console.log('| Functions | ' + fmt(total.functions.pct) + ' |');
+            console.log('| Lines | ' + fmt(total.lines.pct) + ' |');
+            console.log('');
+
+            // Group files by directory
+            const dirs = {};
+            for (const [file, cov] of Object.entries(data)) {
+              if (file === 'total') continue;
+              const parts = file.split('/');
+              const dir = parts.slice(0, -1).join('/').replace(process.cwd() + '/', '') || 'root';
+              if (!dirs[dir]) dirs[dir] = { statements: { total: 0, covered: 0 }, files: [] };
+              dirs[dir].statements.total += cov.statements.total;
+              dirs[dir].statements.covered += cov.statements.covered;
+              dirs[dir].files.push({ name: parts[parts.length - 1], pct: cov.statements.pct });
+            }
+
+            console.log('### By Directory');
+            console.log('');
+            console.log('| Directory | Statements | Files |');
+            console.log('|-----------|------------|-------|');
+            for (const [dir, info] of Object.entries(dirs).sort()) {
+              const pct = info.statements.total > 0 ? (info.statements.covered / info.statements.total) * 100 : 0;
+              console.log('| \`' + dir + '\` | ' + fmt(pct) + ' | ' + info.files.length + ' |');
+            }
+            console.log('');
+
+            // Show files needing attention (< 50% coverage)
+            const lowCoverage = [];
+            for (const [file, cov] of Object.entries(data)) {
+              if (file === 'total') continue;
+              if (cov.statements.pct < 50 && cov.statements.total > 0) {
+                lowCoverage.push({ file: file.replace(process.cwd() + '/', ''), pct: cov.statements.pct });
+              }
+            }
+
+            if (lowCoverage.length > 0) {
+              console.log('### Needs Attention (< 50%)');
+              console.log('');
+              console.log('| File | Coverage |');
+              console.log('|------|----------|');
+              lowCoverage.sort((a, b) => a.pct - b.pct).forEach(f => {
+                console.log('| \`' + f.file + '\` | ' + fmt(f.pct) + ' |');
+              });
+            }
+          " >> $GITHUB_STEP_SUMMARY
 
   build:
     name: Build
@@ -70,7 +131,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: "18"
+          node-version: "20"
           cache: "npm"
 
       - name: Install dependencies

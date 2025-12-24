@@ -1,6 +1,9 @@
 # Changelog
-## [1.9.1](https://github.com/al3xjohnson/herald/compare/v1.9.0...v1.9.1) (2025-12-24)
+## [1.10.0](https://github.com/al3xjohnson/herald/compare/v1.9.0...v1.10.0) (2025-12-24)
 
+
+### Features
+* add coverage reporting to CI ([442a9c9](https://github.com/al3xjohnson/herald/commit/442a9c9))
 ## [1.9.0](https://github.com/al3xjohnson/herald/compare/v1.8.2...v1.9.0) (2025-12-24)
 
 

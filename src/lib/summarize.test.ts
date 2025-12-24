@@ -1,5 +1,37 @@
-import { describe, it, expect } from "vitest";
-import { cleanForSpeech, countWords, truncateToWords } from "./summarize.js";
+import { describe, it, expect, vi, beforeEach, afterEach } from "vitest";
+import { EventEmitter, Writable } from "stream";
+
+// Create a mock process with stdin/stdout/stderr as EventEmitters
+function createMockProcess() {
+  const proc = new EventEmitter() as EventEmitter & {
+    stdin: Writable;
+    stdout: EventEmitter;
+    stderr: EventEmitter;
+  };
+  proc.stdin = new Writable({
+    write(_chunk, _encoding, callback) {
+      callback();
+    },
+  });
+  proc.stdout = new EventEmitter();
+  proc.stderr = new EventEmitter();
+  return proc;
+}
+
+let mockProcess: ReturnType<typeof createMockProcess>;
+
+// Mock child_process before importing
+vi.mock("child_process", () => ({
+  spawn: vi.fn(() => mockProcess),
+}));
+
+import {
+  cleanForSpeech,
+  countWords,
+  truncateToWords,
+  summarizeWithClaude,
+} from "./summarize.js";
+import { spawn } from "child_process";
 
 describe("cleanForSpeech", () => {
   describe("code removal", () => {
@@ -262,5 +294,175 @@ describe("truncateToWords", () => {
   it("preserves original spacing when under limit", () => {
     const text = "hello world";
     expect(truncateToWords(text, 100)).toBe("hello world");
+  });
+});
+
+describe("summarizeWithClaude", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockProcess = createMockProcess();
+  });
+
+  afterEach(() => {
+    vi.restoreAllMocks();
+  });
+
+  it("spawns claude CLI with correct arguments", async () => {
+    const resultPromise = summarizeWithClaude("test text", 50);
+
+    // Simulate successful response
+    mockProcess.stdout.emit("data", Buffer.from("Summary result"));
+    mockProcess.emit("close", 0);
+
+    await resultPromise;
+
+    expect(spawn).toHaveBeenCalledWith("claude", ["--print", "--model", "haiku"], {
+      stdio: ["pipe", "pipe", "pipe"],
+    });
+  });
+
+  it("returns output on successful completion", async () => {
+    const resultPromise = summarizeWithClaude("test text", 50);
+
+    mockProcess.stdout.emit("data", Buffer.from("This is the summary"));
+    mockProcess.emit("close", 0);
+
+    const result = await resultPromise;
+    expect(result).toBe("This is the summary");
+  });
+
+  it("trims whitespace from output", async () => {
+    const resultPromise = summarizeWithClaude("test text", 50);
+
+    mockProcess.stdout.emit("data", Buffer.from("  Summary with spaces  \n"));
+    mockProcess.emit("close", 0);
+
+    const result = await resultPromise;
+    expect(result).toBe("Summary with spaces");
+  });
+
+  it("returns null on non-zero exit code", async () => {
+    const resultPromise = summarizeWithClaude("test text", 50);
+
+    mockProcess.stdout.emit("data", Buffer.from("Some output"));
+    mockProcess.emit("close", 1);
+
+    const result = await resultPromise;
+    expect(result).toBeNull();
+  });
+
+  it("returns null when output is empty", async () => {
+    const resultPromise = summarizeWithClaude("test text", 50);
+
+    mockProcess.stdout.emit("data", Buffer.from(""));
+    mockProcess.emit("close", 0);
+
+    const result = await resultPromise;
+    expect(result).toBeNull();
+  });
+
+  it("returns null when output is only whitespace", async () => {
+    const resultPromise = summarizeWithClaude("test text", 50);
+
+    mockProcess.stdout.emit("data", Buffer.from("   \n\t  "));
+    mockProcess.emit("close", 0);
+
+    const result = await resultPromise;
+    expect(result).toBeNull();
+  });
+
+  it("returns null on process error", async () => {
+    const resultPromise = summarizeWithClaude("test text", 50);
+
+    mockProcess.emit("error", new Error("spawn failed"));
+
+    const result = await resultPromise;
+    expect(result).toBeNull();
+  });
+
+  it("handles stderr output without failing", async () => {
+    const resultPromise = summarizeWithClaude("test text", 50);
+
+    mockProcess.stderr.emit("data", Buffer.from("Some warning"));
+    mockProcess.stdout.emit("data", Buffer.from("Valid output"));
+    mockProcess.emit("close", 0);
+
+    const result = await resultPromise;
+    expect(result).toBe("Valid output");
+  });
+
+  it("uses custom prompt when provided", async () => {
+    let capturedInput = "";
+    mockProcess.stdin = new Writable({
+      write(chunk, _encoding, callback) {
+        capturedInput += chunk.toString();
+        callback();
+      },
+    });
+
+    const resultPromise = summarizeWithClaude("input text", 25, "Custom instructions");
+
+    mockProcess.stdout.emit("data", Buffer.from("Result"));
+    mockProcess.emit("close", 0);
+
+    await resultPromise;
+
+    expect(capturedInput).toContain("Custom instructions");
+    expect(capturedInput).toContain("Keep response under 25 words");
+    expect(capturedInput).toContain("input text");
+  });
+
+  it("uses default prompt when custom prompt is null", async () => {
+    let capturedInput = "";
+    mockProcess.stdin = new Writable({
+      write(chunk, _encoding, callback) {
+        capturedInput += chunk.toString();
+        callback();
+      },
+    });
+
+    const resultPromise = summarizeWithClaude("input text", 30, null);
+
+    mockProcess.stdout.emit("data", Buffer.from("Result"));
+    mockProcess.emit("close", 0);
+
+    await resultPromise;
+
+    expect(capturedInput).toContain("TTS summarizer");
+    expect(capturedInput).toContain("Maximum 30 words");
+    expect(capturedInput).toContain("input text");
+  });
+
+  it("uses default prompt when custom prompt is not provided", async () => {
+    let capturedInput = "";
+    mockProcess.stdin = new Writable({
+      write(chunk, _encoding, callback) {
+        capturedInput += chunk.toString();
+        callback();
+      },
+    });
+
+    const resultPromise = summarizeWithClaude("test content", 40);
+
+    mockProcess.stdout.emit("data", Buffer.from("Summary"));
+    mockProcess.emit("close", 0);
+
+    await resultPromise;
+
+    expect(capturedInput).toContain("TTS summarizer");
+    expect(capturedInput).toContain("Maximum 40 words");
+    expect(capturedInput).toContain("test content");
+  });
+
+  it("concatenates chunked stdout data", async () => {
+    const resultPromise = summarizeWithClaude("test text", 50);
+
+    mockProcess.stdout.emit("data", Buffer.from("Part 1 "));
+    mockProcess.stdout.emit("data", Buffer.from("Part 2 "));
+    mockProcess.stdout.emit("data", Buffer.from("Part 3"));
+    mockProcess.emit("close", 0);
+
+    const result = await resultPromise;
+    expect(result).toBe("Part 1 Part 2 Part 3");
   });
 });
