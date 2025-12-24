@@ -4,9 +4,12 @@ import { loadConfig } from "../lib/config.js";
 import { playAlert, playSound, activateEditor } from "../lib/audio.js";
 import { withMediaControl } from "../lib/media.js";
 import { cleanForSpeech, countWords, truncateToWords, summarizeWithClaude, } from "../lib/summarize.js";
-import { acquireGlobalLock, TTS_LOCK_EXPIRY_MS, ALERT_LOCK_EXPIRY_MS, } from "../lib/lock.js";
+import { waitForPlayerLock, releasePlayerLock } from "../lib/lock.js";
+import { checkAndRecord, hashContent } from "../lib/recent.js";
 import { extractLastAssistantMessage } from "../lib/transcript.js";
 import { getProvider } from "../tts/index.js";
+// Minimum delay between alert sounds
+const ALERT_MIN_DELAY_MS = 1000;
 async function readStdin(timeoutMs = 5000) {
     return new Promise((resolve) => {
         let data = "";
@@ -54,65 +57,77 @@ async function main() {
     catch {
         // No input or invalid JSON
     }
-    // Prevent duplicate plays (global lock, not per-session)
-    // Use shorter lock for alerts since they play quickly
-    const lockExpiry = config.style === "alerts" ? ALERT_LOCK_EXPIRY_MS : TTS_LOCK_EXPIRY_MS;
-    const gotLock = await acquireGlobalLock(lockExpiry);
-    if (!gotLock) {
-        process.exit(0);
+    const projectName = input.cwd ? basename(input.cwd) : undefined;
+    // Prepare the message based on config style
+    let messageContent;
+    let isAlert = false;
+    if (config.style === "alerts") {
+        isAlert = true;
+        // For alerts, use session_id for deduplication (each session gets one alert)
+        messageContent = `alert:${input.session_id || projectName || "default"}`;
     }
-    switch (config.style) {
-        case "tts": {
-            const ttsProvider = getProvider(config.tts);
-            const transcriptPath = input.transcript_path;
-            if (!transcriptPath) {
-                if (config.preferences.activate_editor) {
-                    const projectName = input.cwd ? basename(input.cwd) : undefined;
-                    activateEditor(projectName);
-                }
-                await withMediaControl(() => ttsProvider.speak("Done"));
-                break;
-            }
+    else {
+        // TTS: Get the text to speak
+        const transcriptPath = input.transcript_path;
+        if (!transcriptPath) {
+            messageContent = "Done";
+        }
+        else {
             const rawText = await extractLastAssistantMessage(transcriptPath);
             const wordCount = countWords(rawText);
             const maxWords = config.preferences.max_words;
-            let finalText;
             if (wordCount <= maxWords) {
-                // Short enough, just clean it
-                finalText = cleanForSpeech(rawText);
+                messageContent = cleanForSpeech(rawText);
             }
             else {
                 // Try to summarize with Claude
                 const summarized = await summarizeWithClaude(rawText, maxWords, config.preferences.summary_prompt);
                 if (summarized) {
-                    finalText = summarized;
+                    messageContent = summarized;
                 }
                 else {
                     // Fallback to truncation
-                    finalText = truncateToWords(cleanForSpeech(rawText), maxWords);
+                    messageContent = truncateToWords(cleanForSpeech(rawText), maxWords);
                 }
             }
-            const textToSpeak = finalText || "Done";
-            if (config.preferences.activate_editor) {
-                const projectName = input.cwd ? basename(input.cwd) : undefined;
-                activateEditor(projectName);
-            }
-            await withMediaControl(() => ttsProvider.speak(textToSpeak));
-            break;
         }
-        case "alerts": {
-            const projectName = input.cwd ? basename(input.cwd) : undefined;
+        messageContent = messageContent || "Done";
+    }
+    // Check for duplicate and record this play atomically
+    const hash = hashContent(messageContent);
+    const isNew = await checkAndRecord(hash);
+    if (!isNew) {
+        // Duplicate message, skip
+        process.exit(0);
+    }
+    // Wait for player lock (blocks until available or timeout)
+    const gotLock = await waitForPlayerLock();
+    if (!gotLock) {
+        // Timed out waiting for lock
+        process.exit(0);
+    }
+    // Play the message
+    try {
+        if (isAlert) {
             if (config.preferences.activate_editor) {
                 playAlert(projectName);
             }
             else {
                 playSound("alert");
             }
-            break;
+            // Minimum delay between alerts
+            await new Promise((resolve) => setTimeout(resolve, ALERT_MIN_DELAY_MS));
         }
-        default:
-            // Unknown style, do nothing
-            break;
+        else {
+            const ttsProvider = getProvider(config.tts);
+            if (config.preferences.activate_editor) {
+                activateEditor(projectName);
+            }
+            await withMediaControl(() => ttsProvider.speak(messageContent));
+        }
+    }
+    finally {
+        await releasePlayerLock();
     }
 }
 main().catch(console.error);
