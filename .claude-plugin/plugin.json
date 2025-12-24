@@ -1,6 +1,6 @@
 {
   "name": "herald",
-  "version": "1.4.1",
+  "version": "1.5.0",
   "description": "Configurable notifications when Claude finishes - TTS or alert sounds",
   "license": "MIT",
   "author": {
