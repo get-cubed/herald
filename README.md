@@ -30,7 +30,7 @@
 Run these commands in Claude Code:
 
 ```
-/plugin install al3xjohnson/herald
+/plugin install al3xjohnson/agora/herald
 /herald:style tts
 ```
 
@@ -79,17 +79,21 @@ Use `/herald:disable` to turn off notifications entirely.
 
 Herald stores its configuration in `~/.config/herald/config.json`:
 
-```json
+```jsonc
 {
-  "enabled": true,
-  "style": "tts",
+  "enabled": true,                    // true | false
+  "style": "tts",                     // "tts" | "alerts"
   "tts": {
-    "provider": "macos"
+    "provider": "macos",              // "macos" | "windows" | "elevenlabs"
+    "elevenlabs": {                   // required if provider is "elevenlabs"
+      "apiKey": "sk-...",
+      "voiceId": "voice-id"
+    }
   },
   "preferences": {
-    "max_words": 50,
-    "summary_prompt": null,
-    "activate_editor": true
+    "max_words": 50,                  // number
+    "summary_prompt": null,           // string | null (custom TTS prompt)
+    "activate_editor": true           // true | false
   }
 }
 ```
