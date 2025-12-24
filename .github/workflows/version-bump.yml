@@ -115,8 +115,8 @@ jobs:
         if: steps.check-bump.outputs.needed == 'true'
         run: |
           NEW_VERSION="${{ steps.new-version.outputs.version }}"
-          jq --arg v "$NEW_VERSION" '.version = $v' plugin/plugin.json > plugin.json.tmp
-          mv plugin.json.tmp plugin/plugin.json
+          jq --arg v "$NEW_VERSION" '.version = $v' plugin/.claude-plugin/plugin.json > plugin.json.tmp
+          mv plugin.json.tmp plugin/.claude-plugin/plugin.json
 
       - name: Generate changelog entry
         if: steps.check-bump.outputs.needed == 'true'
@@ -173,6 +173,6 @@ jobs:
         if: steps.check-bump.outputs.needed == 'true'
         run: |
           NEW_VERSION="${{ steps.new-version.outputs.version }}"
-          git add package.json plugin/plugin.json CHANGELOG.md
+          git add package.json plugin/.claude-plugin/plugin.json CHANGELOG.md
           git commit -m "chore: bump version to $NEW_VERSION [skip ci]"
           git push

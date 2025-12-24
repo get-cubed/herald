@@ -1,6 +1,6 @@
 {
   "name": "herald",
-  "version": "1.11.1",
+  "version": "1.11.2",
   "description": "Configurable notifications for Claude Code - TTS or alert sounds",
   "type": "module",
   "keywords": [

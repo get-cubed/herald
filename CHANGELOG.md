@@ -1,4 +1,10 @@
 # Changelog
+## [1.11.2](https://github.com/al3xjohnson/herald/compare/v1.11.1...v1.11.2) (2025-12-24)
+
+
+### Bug Fixes
+* update version-bump workflow for new plugin.json path ([74d32ec](https://github.com/al3xjohnson/herald/commit/74d32ec))
+* move plugin.json to .claude-plugin directory for proper discovery ([f7644ea](https://github.com/al3xjohnson/herald/commit/f7644ea))
 ## [1.11.1](https://github.com/al3xjohnson/herald/compare/v1.11.0...v1.11.1) (2025-12-24)
 
 
