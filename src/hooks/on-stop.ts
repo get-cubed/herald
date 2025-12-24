@@ -1,8 +1,5 @@
 #!/usr/bin/env node
-import { readFile, mkdir, open, unlink } from "fs/promises";
-import { existsSync } from "fs";
-import { join, basename } from "path";
-import { homedir } from "os";
+import { basename } from "path";
 import { loadConfig } from "../lib/config.js";
 import { playAlert, playSound, activateEditor } from "../lib/audio.js";
 import { withMediaControl } from "../lib/media.js";
@@ -12,74 +9,14 @@ import {
   truncateToWords,
   summarizeWithClaude,
 } from "../lib/summarize.js";
+import {
+  acquireGlobalLock,
+  TTS_LOCK_EXPIRY_MS,
+  ALERT_LOCK_EXPIRY_MS,
+} from "../lib/lock.js";
+import { extractLastAssistantMessage } from "../lib/transcript.js";
 import { getProvider } from "../tts/index.js";
-import type { StopHookInput, TranscriptMessage } from "../types.js";
-
-// Global lock to prevent multiple plays (regardless of session ID)
-const LOCK_FILE = join(homedir(), ".config", "herald", "tts.lock");
-const TTS_LOCK_EXPIRY_MS = 30000; // 30 seconds - covers API latency + audio playback
-const ALERT_LOCK_EXPIRY_MS = 2000; // 2 seconds - just enough for the sound to play
-
-async function acquireGlobalLock(expiryMs: number): Promise<boolean> {
-  try {
-    await mkdir(join(homedir(), ".config", "herald"), { recursive: true });
-
-    // Check if lock exists and is stale (expired)
-    if (existsSync(LOCK_FILE)) {
-      try {
-        const content = await readFile(LOCK_FILE, "utf-8");
-        const timestamp = parseInt(content, 10);
-        if (Date.now() - timestamp < expiryMs) {
-          return false; // Lock is held and not expired
-        }
-        // Lock is stale, remove it
-        await unlink(LOCK_FILE);
-      } catch {
-        // Ignore errors reading stale lock
-      }
-    }
-
-    // Atomic lock acquisition using exclusive create (wx flag)
-    // This fails if file already exists, preventing race conditions
-    const handle = await open(LOCK_FILE, "wx");
-    await handle.write(String(Date.now()));
-    await handle.close();
-    return true;
-  } catch (err) {
-    // EEXIST means another process created the lock between our check and create
-    if (err && typeof err === "object" && "code" in err && err.code === "EEXIST") {
-      return false;
-    }
-    return true; // Other errors, fail open
-  }
-}
-
-async function extractLastAssistantMessage(
-  transcriptPath: string
-): Promise<string> {
-  try {
-    const text = await readFile(transcriptPath, "utf-8");
-    const lines = text.trim().split("\n");
-
-    // Parse JSONL and find last assistant message
-    for (let i = lines.length - 1; i >= 0; i--) {
-      const msg: TranscriptMessage = JSON.parse(lines[i]);
-      if (msg.type === "assistant" && msg.message?.content) {
-        const textParts = msg.message.content
-          .filter((block) => block.type === "text" && block.text)
-          .map((block) => block.text!)
-          .join(" ");
-
-        if (textParts.trim()) {
-          return textParts.trim();
-        }
-      }
-    }
-  } catch {
-    // Fall through
-  }
-  return "Done";
-}
+import type { StopHookInput } from "../types.js";
 
 async function readStdin(timeoutMs: number = 5000): Promise<string> {
   return new Promise((resolve) => {

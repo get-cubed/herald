@@ -4,7 +4,7 @@ import { spawn } from "child_process";
  * Escape a string for safe use in AppleScript.
  * Escapes backslashes and double quotes.
  */
-function escapeAppleScript(str: string): string {
+export function escapeAppleScript(str: string): string {
   return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
 }
 
@@ -12,7 +12,7 @@ function escapeAppleScript(str: string): string {
  * Escape a string for safe use in PowerShell single-quoted strings.
  * Single quotes are escaped by doubling them.
  */
-function escapePowerShell(str: string): string {
+export function escapePowerShell(str: string): string {
   return str.replace(/'/g, "''");
 }
 
@@ -57,7 +57,7 @@ export function playSound(type: "alert" | "ping"): void {
  * Detect which application Claude Code is running in.
  * Returns the app name for activation purposes.
  */
-function detectTerminalApp(): { app: string; process?: string } {
+export function detectTerminalApp(): { app: string; process?: string } {
   const termProgram = process.env.TERM_PROGRAM?.toLowerCase() || "";
   const terminalEmulator = process.env.TERMINAL_EMULATOR?.toLowerCase() || "";
 
