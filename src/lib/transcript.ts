@@ -33,7 +33,7 @@ export function extractLastAssistantMessageFromText(text: string): string {
       if (msg.type === "assistant" && msg.message?.content) {
         const textParts = msg.message.content
           .filter((block) => block.type === "text" && block.text)
-          .map((block) => block.text || "")
+          .map((block) => block.text ?? "")
           .join(" ");
 
         if (textParts.trim()) {
