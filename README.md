@@ -8,7 +8,7 @@
   <a href="https://github.com/al3xjohnson/herald/releases"><img src="https://img.shields.io/github/v/release/al3xjohnson/herald" alt="GitHub release"></a>
   <a href="https://github.com/al3xjohnson/herald/actions/workflows/ci.yml"><img src="https://github.com/al3xjohnson/herald/workflows/CI/badge.svg" alt="CI"></a>
   <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue" alt="License"></a>
-  <a href="https://github.com/al3xjohnson/herald"><img src="https://img.shields.io/badge/node-%3E%3D18.0.0-brightgreen" alt="Node version"></a>
+  <a href="https://github.com/al3xjohnson/herald"><img src="https://img.shields.io/badge/node-%3E%3D20.0.0-brightgreen" alt="Node version"></a>
 </p>
 
 <p align="center">
