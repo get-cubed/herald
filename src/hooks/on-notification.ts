@@ -6,7 +6,7 @@ import { withMediaControl } from "../lib/media.js";
 import { waitForPlayerLock, releasePlayerLock } from "../lib/lock.js";
 import { checkAndRecord, hashContent } from "../lib/recent.js";
 import { getProvider } from "../tts/index.js";
-import type { NotificationHookInput, HeraldConfig } from "../types.js";
+import type { NotificationHookInput } from "../types.js";
 
 // Minimum delay between ping sounds
 const PING_MIN_DELAY_MS = 1000;
@@ -67,7 +67,7 @@ async function main() {
 
   // Only handle specific notification types
   const notificationType = input.notification_type;
-  const validTypes = ["permission_prompt", "idle_prompt", "elicitation_dialog"];
+  const validTypes = ["permission_prompt", "elicitation_dialog"];
 
   if (!validTypes.includes(notificationType)) {
     process.exit(0);

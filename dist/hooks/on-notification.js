@@ -56,7 +56,7 @@ async function main() {
     }
     // Only handle specific notification types
     const notificationType = input.notification_type;
-    const validTypes = ["permission_prompt", "idle_prompt", "elicitation_dialog"];
+    const validTypes = ["permission_prompt", "elicitation_dialog"];
     if (!validTypes.includes(notificationType)) {
         process.exit(0);
     }
