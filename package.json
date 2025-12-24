@@ -1,6 +1,6 @@
 {
   "name": "herald",
-  "version": "1.11.0",
+  "version": "1.11.1",
   "description": "Configurable notifications for Claude Code - TTS or alert sounds",
   "type": "module",
   "keywords": [
@@ -29,7 +29,7 @@
   "homepage": "https://github.com/al3xjohnson/herald#readme",
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf plugin/dist",
     "rebuild": "npm run clean && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",

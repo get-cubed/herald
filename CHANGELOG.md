@@ -1,4 +1,9 @@
 # Changelog
+## [1.11.1](https://github.com/al3xjohnson/herald/compare/v1.11.0...v1.11.1) (2025-12-24)
+
+
+### Bug Fixes
+* update CI workflows for new plugin/ directory structure ([950ea99](https://github.com/al3xjohnson/herald/commit/950ea99))
 ## [1.11.0](https://github.com/al3xjohnson/herald/compare/v1.10.1...v1.11.0) (2025-12-24)
 
 

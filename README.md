@@ -30,7 +30,7 @@
 Run these commands in Claude Code:
 
 ```
-/plugin install al3xjohnson/herald
+/plugin install al3xjohnson/herald/plugin
 /herald:style tts
 ```
 
