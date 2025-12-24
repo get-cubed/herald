@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.6.0](https://github.com/al3xjohnson/herald/compare/v1.5.0...v1.6.0) (2025-12-24)
+
+
+### Features
+
+* pause media during TTS playback ([#21](https://github.com/al3xjohnson/herald/issues/21)) ([9783007](https://github.com/al3xjohnson/herald/commit/97830071ccf1aed138d1766cc3c3f9afd6e5446e))
+
 ## [1.5.0](https://github.com/al3xjohnson/herald/compare/v1.4.1...v1.5.0) (2025-12-24)
 
 
