@@ -1,4 +1,9 @@
 # Changelog
+## [1.11.8](https://github.com/al3xjohnson/herald/compare/v1.11.7...v1.11.8) (2025-12-24)
+
+
+### Bug Fixes
+* remove hooks directory from release workflow ([a3aa979](https://github.com/al3xjohnson/herald/commit/a3aa979))
 ## [1.11.7](https://github.com/al3xjohnson/herald/compare/v1.11.6...v1.11.7) (2025-12-24)
 
 ## [1.11.6](https://github.com/al3xjohnson/herald/compare/v1.11.5...v1.11.6) (2025-12-24)
