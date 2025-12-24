@@ -1,4 +1,9 @@
 # Changelog
+## [1.8.2](https://github.com/al3xjohnson/herald/compare/v1.8.1...v1.8.2) (2025-12-24)
+
+
+### Bug Fixes
+* disable notifications for idle prompts ([bc93103](https://github.com/al3xjohnson/herald/commit/bc93103))
 ## [1.8.1](https://github.com/al3xjohnson/herald/compare/v1.8.0...v1.8.1) (2025-12-24)
 
 ## [1.8.0](https://github.com/al3xjohnson/herald/compare/v1.7.0...v1.8.0) (2025-12-24)
