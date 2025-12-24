@@ -19,7 +19,7 @@
 ## Features
 
 - **Text-to-Speech** — Hear a summary of Claude's response when it finishes
-- **Alert Sounds** — Play a sound and bring VS Code to focus
+- **Alert Sounds** — Play a sound and bring your editor/terminal to focus
 - **Cross-Platform** — Works on macOS and Windows
 - **Swappable TTS Providers** — Built-in macOS/Windows speech, or use ElevenLabs for premium voices
 
@@ -45,10 +45,15 @@ Run these commands in Claude Code:
 
 ## Notification Styles
 
-- **`tts`** — Text-to-speech reads a summary of the response, then activates VS Code
-- **`alerts`** — Plays a sound and activates VS Code
+- **`tts`** — Text-to-speech reads a summary of the response, then activates your window
+- **`alerts`** — Plays a sound and activates your window
 
-Both modes activate the editor by default. Disable with `/herald:preferences activate_editor off`.
+Both modes automatically detect where Claude Code is running and activate the correct app:
+- **VS Code** — When running in the integrated terminal
+- **Ghostty, iTerm, Terminal.app, Alacritty, Kitty, WezTerm, Hyper** — When running in a terminal
+- **Windows Terminal** — Detected via `WT_SESSION`
+
+Disable window activation with `/herald:preferences activate_editor off`.
 
 Use `/herald:disable` to turn off notifications entirely.
 

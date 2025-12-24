@@ -26,9 +26,10 @@ export interface StopHookInput {
 }
 
 export interface NotificationHookInput {
-  type: string;
+  notification_type: string;
   message?: string;
   cwd?: string;
+  session_id?: string;
 }
 
 export interface TranscriptMessage {

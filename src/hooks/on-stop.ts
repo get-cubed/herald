@@ -1,21 +1,23 @@
 #!/usr/bin/env node
-import { readFile, writeFile, mkdir, open, unlink } from "fs/promises";
+import { readFile, mkdir, open, unlink } from "fs/promises";
 import { existsSync } from "fs";
 import { join, basename } from "path";
 import { homedir } from "os";
 import { loadConfig } from "../lib/config.js";
-import { playAlert, activateEditor } from "../lib/audio.js";
+import { playAlert, playSound, activateEditor } from "../lib/audio.js";
 import {
   cleanForSpeech,
+  countWords,
   truncateToWords,
   summarizeWithClaude,
 } from "../lib/summarize.js";
 import { getProvider } from "../tts/index.js";
 import type { StopHookInput, TranscriptMessage } from "../types.js";
 
-// Global TTS lock to prevent multiple plays (regardless of session ID)
+// Global lock to prevent multiple plays (regardless of session ID)
 const LOCK_FILE = join(homedir(), ".config", "herald", "tts.lock");
-const LOCK_EXPIRY_MS = 30000; // 30 seconds - covers API latency + audio playback
+const TTS_LOCK_EXPIRY_MS = 30000; // 30 seconds - covers API latency + audio playback
+const ALERT_LOCK_EXPIRY_MS = 2000; // 2 seconds - just enough for the sound to play
 
 async function acquireGlobalLock(expiryMs: number): Promise<boolean> {
   try {
@@ -117,24 +119,14 @@ async function readStdin(timeoutMs: number = 5000): Promise<string> {
 }
 
 async function main() {
-  const logFile = join(homedir(), ".config", "herald", "debug.log");
-  const log = async (msg: string) => {
-    const line = `[${new Date().toISOString()}] ${msg}\n`;
-    await writeFile(logFile, line, { flag: "a" }).catch(() => {});
-  };
-
-  await log("on-stop triggered");
-
   const config = await loadConfig();
 
   if (!config.enabled) {
-    await log("disabled, exiting");
     process.exit(0);
   }
 
   // Read hook input from stdin
   const stdinText = await readStdin();
-  await log(`stdin: ${stdinText.substring(0, 200)}`);
 
   let input: StopHookInput = {};
 
@@ -144,16 +136,13 @@ async function main() {
     // No input or invalid JSON
   }
 
-  await log(`session_id: ${input.session_id}`);
-
-  // Prevent duplicate TTS plays (global lock, not per-session)
-  const gotLock = await acquireGlobalLock(LOCK_EXPIRY_MS);
-  await log(`lock result: ${gotLock}`);
+  // Prevent duplicate plays (global lock, not per-session)
+  // Use shorter lock for alerts since they play quickly
+  const lockExpiry = config.style === "alerts" ? ALERT_LOCK_EXPIRY_MS : TTS_LOCK_EXPIRY_MS;
+  const gotLock = await acquireGlobalLock(lockExpiry);
   if (!gotLock) {
-    await log("lock held by another instance, exiting");
     process.exit(0);
   }
-
   switch (config.style) {
     case "tts": {
       const ttsProvider = getProvider(config.tts);
@@ -165,7 +154,7 @@ async function main() {
       }
 
       const rawText = await extractLastAssistantMessage(transcriptPath);
-      const wordCount = rawText.split(/\s+/).length;
+      const wordCount = countWords(rawText);
       const maxWords = config.preferences.max_words;
 
       let finalText: string;
@@ -190,9 +179,7 @@ async function main() {
       }
 
       const textToSpeak = finalText || "Done";
-      await log(`speaking: ${textToSpeak}`);
       await ttsProvider.speak(textToSpeak);
-      await log("speech complete");
       if (config.preferences.activate_editor) {
         const projectName = input.cwd ? basename(input.cwd) : undefined;
         activateEditor(projectName);
@@ -205,8 +192,6 @@ async function main() {
       if (config.preferences.activate_editor) {
         playAlert(projectName);
       } else {
-        // Just play sound without activating editor
-        const { playSound } = await import("../lib/audio.js");
         playSound("alert");
       }
       break;

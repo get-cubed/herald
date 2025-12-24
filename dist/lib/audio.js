@@ -1,5 +1,19 @@
 import { spawn } from "child_process";
 /**
+ * Escape a string for safe use in AppleScript.
+ * Escapes backslashes and double quotes.
+ */
+function escapeAppleScript(str) {
+    return str.replace(/\\/g, "\\\\").replace(/"/g, '\\"');
+}
+/**
+ * Escape a string for safe use in PowerShell single-quoted strings.
+ * Single quotes are escaped by doubling them.
+ */
+function escapePowerShell(str) {
+    return str.replace(/'/g, "''");
+}
+/**
  * Play a system sound in a cross-platform way.
  * @param type - The type of sound: "alert" (task complete) or "ping" (notification)
  */
@@ -37,21 +51,67 @@ export function playSound(type) {
     }
 }
 /**
- * Activate VS Code window (bring to front).
+ * Detect which application Claude Code is running in.
+ * Returns the app name for activation purposes.
+ */
+function detectTerminalApp() {
+    const termProgram = process.env.TERM_PROGRAM?.toLowerCase() || "";
+    const terminalEmulator = process.env.TERMINAL_EMULATOR?.toLowerCase() || "";
+    // VS Code integrated terminal
+    if (termProgram === "vscode") {
+        return { app: "Visual Studio Code", process: "Code" };
+    }
+    // Popular terminal emulators
+    if (termProgram === "ghostty" || terminalEmulator.includes("ghostty")) {
+        return { app: "Ghostty", process: "ghostty" };
+    }
+    if (termProgram === "iterm.app") {
+        return { app: "iTerm", process: "iTerm2" };
+    }
+    if (termProgram === "apple_terminal") {
+        return { app: "Terminal", process: "Terminal" };
+    }
+    if (termProgram === "alacritty") {
+        return { app: "Alacritty", process: "alacritty" };
+    }
+    if (termProgram === "kitty") {
+        return { app: "kitty", process: "kitty" };
+    }
+    if (termProgram === "wezterm") {
+        return { app: "WezTerm", process: "wezterm-gui" };
+    }
+    if (termProgram === "hyper") {
+        return { app: "Hyper", process: "Hyper" };
+    }
+    // Windows Terminal detection
+    if (process.env.WT_SESSION) {
+        return { app: "Windows Terminal", process: "WindowsTerminal" };
+    }
+    // Fallback to VS Code
+    return { app: "Visual Studio Code", process: "Code" };
+}
+/**
+ * Activate the editor or terminal window (bring to front).
+ * Automatically detects whether running in VS Code or a terminal emulator.
  * Cross-platform support.
- * @param projectName - Optional project/folder name to find the correct VS Code window
+ * @param projectName - Optional project/folder name to find the correct window
  */
 export function activateEditor(projectName) {
     const platform = process.platform;
+    const terminal = detectTerminalApp();
     if (platform === "darwin") {
-        // macOS: Use AppleScript with System Events to find the right window
-        const script = projectName
+        // macOS: Use AppleScript to activate the detected app
+        // Escape user input to prevent AppleScript injection
+        const safeProcess = escapeAppleScript(terminal.process || "");
+        const safeProject = projectName ? escapeAppleScript(projectName) : "";
+        const safeApp = escapeAppleScript(terminal.app);
+        const script = projectName && terminal.process
             ? `
         tell application "System Events"
-          tell process "Code"
+          tell process "${safeProcess}"
             set frontmost to true
             repeat with w in windows
-              if name of w contains "${projectName}" then
+              if name of w contains "${safeProject}" then
                 perform action "AXRaise" of w
                 exit repeat
               end if
@@ -59,7 +119,7 @@ export function activateEditor(projectName) {
           end tell
         end tell
       `
-            : 'tell application "Visual Studio Code" to activate';
+            : `tell application "${safeApp}" to activate`;
         spawn("osascript", ["-e", script], {
             stdio: "ignore",
             detached: true,
@@ -67,10 +127,11 @@ export function activateEditor(projectName) {
     }
     else if (platform === "win32") {
         // Windows: Use PowerShell with COM automation
-        const windowTitle = projectName || "Visual Studio Code";
+        // Escape user input to prevent PowerShell injection
+        const safeTitle = escapePowerShell(projectName || terminal.app);
         const script = `
       $shell = New-Object -ComObject WScript.Shell
-      $shell.AppActivate('${windowTitle}')
+      $shell.AppActivate('${safeTitle}')
     `;
         spawn("powershell", ["-Command", script], {
             stdio: "ignore",
@@ -79,8 +140,8 @@ export function activateEditor(projectName) {
         }).unref();
     }
     else {
-        // Linux: Use wmctrl if available
-        const windowTitle = projectName || "Visual Studio Code";
+        // Linux: wmctrl with arguments array (safe from injection)
+        const windowTitle = projectName || terminal.app;
         spawn("wmctrl", ["-a", windowTitle], {
             stdio: "ignore",
             detached: true,
@@ -88,16 +149,16 @@ export function activateEditor(projectName) {
     }
 }
 /**
- * Play alert sound and activate editor.
- * @param projectName - Optional project name to find the correct VS Code window
+ * Play alert sound and activate editor/terminal.
+ * @param projectName - Optional project name to find the correct window
  */
 export function playAlert(projectName) {
     playSound("alert");
     activateEditor(projectName);
 }
 /**
- * Play ping/notification sound and activate editor.
- * @param projectName - Optional project name to find the correct VS Code window
+ * Play ping/notification sound and activate editor/terminal.
+ * @param projectName - Optional project name to find the correct window
  */
 export function playPing(projectName) {
     playSound("ping");

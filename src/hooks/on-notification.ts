@@ -1,22 +1,44 @@
 #!/usr/bin/env node
 import { basename } from "path";
 import { loadConfig } from "../lib/config.js";
-import { playPing, activateEditor } from "../lib/audio.js";
+import { playPing, playSound, activateEditor } from "../lib/audio.js";
 import { getProvider } from "../tts/index.js";
 import type { NotificationHookInput } from "../types.js";
 
-async function readStdin(): Promise<string> {
+async function readStdin(timeoutMs: number = 5000): Promise<string> {
   return new Promise((resolve) => {
     let data = "";
+    let resolved = false;
+
+    const done = (result: string) => {
+      if (!resolved) {
+        resolved = true;
+        resolve(result);
+      }
+    };
+
+    // Timeout to prevent hanging if stdin never closes
+    const timeout = setTimeout(() => {
+      done(data);
+    }, timeoutMs);
+
     process.stdin.setEncoding("utf-8");
     process.stdin.on("data", (chunk) => {
       data += chunk;
     });
     process.stdin.on("end", () => {
-      resolve(data);
+      clearTimeout(timeout);
+      done(data);
     });
+    process.stdin.on("error", () => {
+      clearTimeout(timeout);
+      done(data);
+    });
+
+    // Handle case where stdin is empty/closed
     if (process.stdin.isTTY) {
-      resolve("");
+      clearTimeout(timeout);
+      done("");
     }
   });
 }
@@ -30,7 +52,7 @@ async function main() {
 
   // Read hook input from stdin
   const stdinText = await readStdin();
-  let input: NotificationHookInput = { type: "" };
+  let input: NotificationHookInput = { notification_type: "" };
 
   try {
     input = JSON.parse(stdinText);
@@ -39,19 +61,27 @@ async function main() {
   }
 
   // Only handle specific notification types
-  const notificationType = input.type;
+  const notificationType = input.notification_type;
+  const validTypes = ["permission_prompt", "idle_prompt", "elicitation_dialog"];
 
-  if (notificationType !== "permission_prompt" && notificationType !== "idle_prompt") {
+  if (!validTypes.includes(notificationType)) {
     process.exit(0);
   }
 
   switch (config.style) {
     case "tts": {
       const ttsProvider = getProvider(config.tts);
-      const message =
-        notificationType === "permission_prompt"
-          ? "Claude needs permission"
-          : "Claude is waiting for input";
+      let message: string;
+      switch (notificationType) {
+        case "permission_prompt":
+          message = "Claude needs permission";
+          break;
+        case "elicitation_dialog":
+          message = "Claude needs more information";
+          break;
+        default:
+          message = "Claude is waiting for input";
+      }
       await ttsProvider.speak(message);
       if (config.preferences.activate_editor) {
         const projectName = input.cwd ? basename(input.cwd) : undefined;
@@ -65,7 +95,6 @@ async function main() {
       if (config.preferences.activate_editor) {
         playPing(projectName);
       } else {
-        const { playSound } = await import("../lib/audio.js");
         playSound("ping");
       }
       break;

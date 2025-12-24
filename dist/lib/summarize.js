@@ -1,24 +1,39 @@
 import { spawn } from "child_process";
 import { DEFAULT_TTS_PROMPT } from "../types.js";
+// Pre-compiled regex patterns for better performance
+const CLEAN_PATTERNS = [
+    [/```[\s\S]*?```/g, " (code block) "], // Code blocks
+    [/`[^`]+`/g, ""], // Inline code
+    [/^#{1,6}\s+/gm, ""], // Markdown headers
+    [/\*{1,2}([^*]+)\*{1,2}/g, "$1"], // Bold/italic
+    [/\[([^\]]+)\]\([^)]+\)/g, "$1"], // Links (keep text)
+    [/^[\s]*(?:[-*]|\d+\.)\s+/gm, ""], // Bullets and numbered lists
+    [/\s+/g, " "], // Collapse whitespace
+];
 export function cleanForSpeech(text) {
-    return text
-        // Remove code blocks
-        .replace(/```[\s\S]*?```/g, " (code block) ")
-        // Remove inline code
-        .replace(/`[^`]+`/g, "")
-        // Remove markdown headers
-        .replace(/^#{1,6}\s+/gm, "")
-        // Remove bold/italic
-        .replace(/\*{1,2}([^*]+)\*{1,2}/g, "$1")
-        // Remove links, keep text
-        .replace(/\[([^\]]+)\]\([^)]+\)/g, "$1")
-        // Remove bullet points
-        .replace(/^[\s]*[-*]\s+/gm, "")
-        // Remove numbered lists
-        .replace(/^[\s]*\d+\.\s+/gm, "")
-        // Collapse whitespace
-        .replace(/\s+/g, " ")
-        .trim();
+    let result = text;
+    for (const [pattern, replacement] of CLEAN_PATTERNS) {
+        result = result.replace(pattern, replacement);
+    }
+    return result.trim();
+}
+/**
+ * Count words in text efficiently without creating full array.
+ */
+export function countWords(text) {
+    let count = 0;
+    let inWord = false;
+    for (let i = 0; i < text.length; i++) {
+        const isSpace = /\s/.test(text[i]);
+        if (!isSpace && !inWord) {
+            count++;
+            inWord = true;
+        }
+        else if (isSpace) {
+            inWord = false;
+        }
+    }
+    return count;
 }
 export function truncateToWords(text, maxWords) {
     const words = text.split(/\s+/);
