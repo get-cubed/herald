@@ -29,7 +29,7 @@
   "homepage": "https://github.com/al3xjohnson/herald#readme",
   "scripts": {
     "build": "tsc",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf plugin/dist",
     "rebuild": "npm run clean && npm run build",
     "test": "vitest run",
     "test:watch": "vitest",

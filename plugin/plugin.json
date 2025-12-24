@@ -15,5 +15,8 @@
     "tts",
     "text-to-speech",
     "sounds"
-  ]
+  ],
+  "commands": ["./commands/"],
+  "hooks": ["./hooks/"],
+  "skills": ["./skills/"]
 }
