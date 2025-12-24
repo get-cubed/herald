@@ -29,8 +29,22 @@ jobs:
       - name: Typecheck
         run: npx tsc --noEmit
 
-      - name: Test
-        run: npm test
+      - name: Test with coverage
+        run: npm run test:coverage
+
+      - name: Coverage summary
+        run: |
+          echo "## Coverage Report" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          node -e "
+            const c = require('./coverage/coverage-summary.json').total;
+            console.log('| Metric | Coverage |');
+            console.log('|--------|----------|');
+            console.log('| Statements | ' + c.statements.pct + '% |');
+            console.log('| Branches | ' + c.branches.pct + '% |');
+            console.log('| Functions | ' + c.functions.pct + '% |');
+            console.log('| Lines | ' + c.lines.pct + '% |');
+          " >> $GITHUB_STEP_SUMMARY
 
       - name: Build
         run: npm run build
