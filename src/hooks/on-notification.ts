@@ -3,8 +3,13 @@ import { basename } from "path";
 import { loadConfig } from "../lib/config.js";
 import { playPing, playSound, activateEditor } from "../lib/audio.js";
 import { withMediaControl } from "../lib/media.js";
+import { waitForPlayerLock, releasePlayerLock } from "../lib/lock.js";
+import { checkAndRecord, hashContent } from "../lib/recent.js";
 import { getProvider } from "../tts/index.js";
-import type { NotificationHookInput } from "../types.js";
+import type { NotificationHookInput, HeraldConfig } from "../types.js";
+
+// Minimum delay between ping sounds
+const PING_MIN_DELAY_MS = 1000;
 
 async function readStdin(timeoutMs: number = 5000): Promise<string> {
   return new Promise((resolve) => {
@@ -68,37 +73,65 @@ async function main() {
     process.exit(0);
   }
 
-  switch (config.style) {
-    case "tts": {
-      const ttsProvider = getProvider(config.tts);
-      let message: string;
-      switch (notificationType) {
-        case "permission_prompt":
-          message = "Claude needs permission";
-          break;
-        case "elicitation_dialog":
-          message = "Claude needs more information";
-          break;
-        default:
-          message = "Claude is waiting for input";
-      }
-      await withMediaControl(() => ttsProvider.speak(message));
-      if (config.preferences.activate_editor) {
-        const projectName = input.cwd ? basename(input.cwd) : undefined;
-        activateEditor(projectName);
-      }
-      break;
-    }
+  const projectName = input.cwd ? basename(input.cwd) : undefined;
 
-    case "alerts": {
-      const projectName = input.cwd ? basename(input.cwd) : undefined;
+  // Prepare the message based on config style
+  let messageContent: string;
+  let isPing = false;
+
+  if (config.style === "alerts") {
+    isPing = true;
+    // For pings, use session_id for deduplication (each session gets one ping per type)
+    messageContent = `ping:${notificationType}:${input.session_id || projectName || "default"}`;
+  } else {
+    // TTS mode
+    switch (notificationType) {
+      case "permission_prompt":
+        messageContent = "Claude needs permission";
+        break;
+      case "elicitation_dialog":
+        messageContent = "Claude needs more information";
+        break;
+      default:
+        messageContent = "Claude is waiting for input";
+    }
+  }
+
+  // Check for duplicate and record this play atomically
+  const hash = hashContent(messageContent);
+  const isNew = await checkAndRecord(hash);
+
+  if (!isNew) {
+    // Duplicate message, skip
+    process.exit(0);
+  }
+
+  // Wait for player lock (blocks until available or timeout)
+  const gotLock = await waitForPlayerLock();
+  if (!gotLock) {
+    // Timed out waiting for lock
+    process.exit(0);
+  }
+
+  // Play the message
+  try {
+    if (isPing) {
       if (config.preferences.activate_editor) {
         playPing(projectName);
       } else {
         playSound("ping");
       }
-      break;
+      // Minimum delay between pings
+      await new Promise((resolve) => setTimeout(resolve, PING_MIN_DELAY_MS));
+    } else {
+      const ttsProvider = getProvider(config.tts);
+      await withMediaControl(() => ttsProvider.speak(messageContent));
+      if (config.preferences.activate_editor) {
+        activateEditor(projectName);
+      }
     }
+  } finally {
+    await releasePlayerLock();
   }
 }
 
