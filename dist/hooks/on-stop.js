@@ -5,6 +5,7 @@ import { join, basename } from "path";
 import { homedir } from "os";
 import { loadConfig } from "../lib/config.js";
 import { playAlert, playSound, activateEditor } from "../lib/audio.js";
+import { withMediaControl } from "../lib/media.js";
 import { cleanForSpeech, countWords, truncateToWords, summarizeWithClaude, } from "../lib/summarize.js";
 import { getProvider } from "../tts/index.js";
 // Global lock to prevent multiple plays (regardless of session ID)
@@ -126,7 +127,7 @@ async function main() {
             const ttsProvider = getProvider(config.tts);
             const transcriptPath = input.transcript_path;
             if (!transcriptPath) {
-                await ttsProvider.speak("Done");
+                await withMediaControl(() => ttsProvider.speak("Done"));
                 break;
             }
             const rawText = await extractLastAssistantMessage(transcriptPath);
@@ -149,7 +150,7 @@ async function main() {
                 }
             }
             const textToSpeak = finalText || "Done";
-            await ttsProvider.speak(textToSpeak);
+            await withMediaControl(() => ttsProvider.speak(textToSpeak));
             if (config.preferences.activate_editor) {
                 const projectName = input.cwd ? basename(input.cwd) : undefined;
                 activateEditor(projectName);

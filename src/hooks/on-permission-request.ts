@@ -2,6 +2,7 @@
 import { basename } from "path";
 import { loadConfig } from "../lib/config.js";
 import { playPing, playSound, activateEditor } from "../lib/audio.js";
+import { withMediaControl } from "../lib/media.js";
 import { getProvider } from "../tts/index.js";
 import type { PermissionRequestHookInput } from "../types.js";
 
@@ -66,7 +67,7 @@ async function main() {
     case "tts": {
       const ttsProvider = getProvider(config.tts);
       const message = `Claude wants to ${toolName.toLowerCase()}`;
-      await ttsProvider.speak(message);
+      await withMediaControl(() => ttsProvider.speak(message));
       if (config.preferences.activate_editor) {
         const projectName = input.cwd ? basename(input.cwd) : undefined;
         activateEditor(projectName);

@@ -2,6 +2,7 @@
 import { basename } from "path";
 import { loadConfig } from "../lib/config.js";
 import { playPing, playSound, activateEditor } from "../lib/audio.js";
+import { withMediaControl } from "../lib/media.js";
 import { getProvider } from "../tts/index.js";
 async function readStdin(timeoutMs = 5000) {
     return new Promise((resolve) => {
@@ -69,7 +70,7 @@ async function main() {
                 default:
                     message = "Claude is waiting for input";
             }
-            await ttsProvider.speak(message);
+            await withMediaControl(() => ttsProvider.speak(message));
             if (config.preferences.activate_editor) {
                 const projectName = input.cwd ? basename(input.cwd) : undefined;
                 activateEditor(projectName);

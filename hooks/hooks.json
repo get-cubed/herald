@@ -1,5 +1,5 @@
 {
-  "description": "Herald notification hooks - triggers TTS or alert sounds on Stop, Notification, and PermissionRequest events",
+  "description": "Herald notification hooks - triggers TTS or alert sounds on Stop and Notification events",
   "hooks": {
     "Stop": [
       {
@@ -19,18 +19,6 @@
           {
             "type": "command",
             "command": "node ${CLAUDE_PLUGIN_ROOT}/dist/hooks/on-notification.js",
-            "timeout": 10
-          }
-        ]
-      }
-    ],
-    "PreToolUse": [
-      {
-        "matcher": "Write|Edit|MultiEdit",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "node ${CLAUDE_PLUGIN_ROOT}/dist/hooks/on-permission-request.js",
             "timeout": 10
           }
         ]
