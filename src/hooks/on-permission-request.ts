@@ -3,7 +3,7 @@ import { basename } from "path";
 import { loadConfig } from "../lib/config.js";
 import { playPing, playSound, activateEditor } from "../lib/audio.js";
 import { getProvider } from "../tts/index.js";
-import type { NotificationHookInput } from "../types.js";
+import type { PermissionRequestHookInput } from "../types.js";
 
 async function readStdin(timeoutMs: number = 5000): Promise<string> {
   return new Promise((resolve) => {
@@ -17,7 +17,6 @@ async function readStdin(timeoutMs: number = 5000): Promise<string> {
       }
     };
 
-    // Timeout to prevent hanging if stdin never closes
     const timeout = setTimeout(() => {
       done(data);
     }, timeoutMs);
@@ -35,7 +34,6 @@ async function readStdin(timeoutMs: number = 5000): Promise<string> {
       done(data);
     });
 
-    // Handle case where stdin is empty/closed
     if (process.stdin.isTTY) {
       clearTimeout(timeout);
       done("");
@@ -51,7 +49,7 @@ async function main() {
   }
 
   const stdinText = await readStdin();
-  let input: NotificationHookInput = { notification_type: "" };
+  let input: PermissionRequestHookInput = { tool_name: "" };
 
   try {
     input = JSON.parse(stdinText);
@@ -59,28 +57,15 @@ async function main() {
     process.exit(0);
   }
 
-  // Only handle specific notification types
-  const notificationType = input.notification_type;
-  const validTypes = ["permission_prompt", "idle_prompt", "elicitation_dialog"];
-
-  if (!validTypes.includes(notificationType)) {
+  const toolName = input.tool_name;
+  if (!toolName) {
     process.exit(0);
   }
 
   switch (config.style) {
     case "tts": {
       const ttsProvider = getProvider(config.tts);
-      let message: string;
-      switch (notificationType) {
-        case "permission_prompt":
-          message = "Claude needs permission";
-          break;
-        case "elicitation_dialog":
-          message = "Claude needs more information";
-          break;
-        default:
-          message = "Claude is waiting for input";
-      }
+      const message = `Claude wants to ${toolName.toLowerCase()}`;
       await ttsProvider.speak(message);
       if (config.preferences.activate_editor) {
         const projectName = input.cwd ? basename(input.cwd) : undefined;

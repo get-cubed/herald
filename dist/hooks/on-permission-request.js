@@ -13,7 +13,6 @@ async function readStdin(timeoutMs = 5000) {
                 resolve(result);
             }
         };
-        // Timeout to prevent hanging if stdin never closes
         const timeout = setTimeout(() => {
             done(data);
         }, timeoutMs);
@@ -29,7 +28,6 @@ async function readStdin(timeoutMs = 5000) {
             clearTimeout(timeout);
             done(data);
         });
-        // Handle case where stdin is empty/closed
         if (process.stdin.isTTY) {
             clearTimeout(timeout);
             done("");
@@ -42,33 +40,21 @@ async function main() {
         process.exit(0);
     }
     const stdinText = await readStdin();
-    let input = { notification_type: "" };
+    let input = { tool_name: "" };
     try {
         input = JSON.parse(stdinText);
     }
     catch {
         process.exit(0);
     }
-    // Only handle specific notification types
-    const notificationType = input.notification_type;
-    const validTypes = ["permission_prompt", "idle_prompt", "elicitation_dialog"];
-    if (!validTypes.includes(notificationType)) {
+    const toolName = input.tool_name;
+    if (!toolName) {
         process.exit(0);
     }
     switch (config.style) {
         case "tts": {
             const ttsProvider = getProvider(config.tts);
-            let message;
-            switch (notificationType) {
-                case "permission_prompt":
-                    message = "Claude needs permission";
-                    break;
-                case "elicitation_dialog":
-                    message = "Claude needs more information";
-                    break;
-                default:
-                    message = "Claude is waiting for input";
-            }
+            const message = `Claude wants to ${toolName.toLowerCase()}`;
             await ttsProvider.speak(message);
             if (config.preferences.activate_editor) {
                 const projectName = input.cwd ? basename(input.cwd) : undefined;

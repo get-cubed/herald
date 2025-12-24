@@ -27,6 +27,12 @@ export interface NotificationHookInput {
     cwd?: string;
     session_id?: string;
 }
+export interface PermissionRequestHookInput {
+    tool_name: string;
+    tool_input?: Record<string, unknown>;
+    cwd?: string;
+    session_id?: string;
+}
 export interface TranscriptMessage {
     type: "user" | "assistant" | "system";
     message?: {
