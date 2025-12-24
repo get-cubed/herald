@@ -1,4 +1,9 @@
 # Changelog
+## [1.11.6](https://github.com/al3xjohnson/herald/compare/v1.11.5...v1.11.6) (2025-12-24)
+
+
+### Bug Fixes
+* change history lock to fail-closed to prevent duplicate notifications ([6508b9c](https://github.com/al3xjohnson/herald/commit/6508b9c))
 ## [1.11.5](https://github.com/al3xjohnson/herald/compare/v1.11.4...v1.11.5) (2025-12-24)
 
 ## [1.11.4](https://github.com/al3xjohnson/herald/compare/v1.11.3...v1.11.4) (2025-12-24)
