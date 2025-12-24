@@ -50,10 +50,10 @@ async function acquireHistoryLock(maxWaitMs: number = 1000): Promise<boolean> {
         await new Promise((resolve) => setTimeout(resolve, 10));
         continue;
       }
-      return true; // Other error, fail open
+      return false; // Other error, fail closed
     }
   }
-  return true; // Timeout, fail open
+  return false; // Timeout, fail closed
 }
 
 /**
@@ -103,7 +103,11 @@ async function writeHistory(plays: RecentPlay[]): Promise<void> {
  * Returns true if this is a duplicate that should be skipped.
  */
 export async function isDuplicate(hash: string): Promise<boolean> {
-  await acquireHistoryLock();
+  const gotLock = await acquireHistoryLock();
+  if (!gotLock) {
+    // Couldn't acquire lock - treat as duplicate to be safe
+    return true;
+  }
   try {
     const history = await readHistory();
     return history.some((p) => p.hash === hash);
@@ -117,7 +121,11 @@ export async function isDuplicate(hash: string): Promise<boolean> {
  * Call this after successfully playing a message.
  */
 export async function recordPlay(hash: string): Promise<void> {
-  await acquireHistoryLock();
+  const gotLock = await acquireHistoryLock();
+  if (!gotLock) {
+    // Couldn't acquire lock - skip recording (non-critical)
+    return;
+  }
   try {
     const history = await readHistory();
 
@@ -137,7 +145,11 @@ export async function recordPlay(hash: string): Promise<void> {
  * Returns false if this is a DUPLICATE (should be skipped).
  */
 export async function checkAndRecord(hash: string): Promise<boolean> {
-  await acquireHistoryLock();
+  const gotLock = await acquireHistoryLock();
+  if (!gotLock) {
+    // Couldn't acquire lock - treat as duplicate to be safe (don't play)
+    return false;
+  }
   try {
     const history = await readHistory();
 
@@ -159,7 +171,11 @@ export async function checkAndRecord(hash: string): Promise<boolean> {
  * Clear all history (for testing).
  */
 export async function clearHistory(): Promise<void> {
-  await acquireHistoryLock();
+  const gotLock = await acquireHistoryLock();
+  if (!gotLock) {
+    // Couldn't acquire lock - skip clearing
+    return;
+  }
   try {
     await writeHistory([]);
   } finally {

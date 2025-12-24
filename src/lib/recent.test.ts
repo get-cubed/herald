@@ -349,8 +349,8 @@ describe("recent plays tracker", () => {
 
       const result = await checkAndRecord("test");
 
-      // Should still succeed (fail open behavior)
-      expect(result).toBe(true);
+      // Should fail closed (skip notification to be safe)
+      expect(result).toBe(false);
     });
   });
 });
