@@ -7,6 +7,8 @@ describe("media", () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
+    // Run all tests on Linux (no-op path) to avoid slow osascript/powershell calls
+    Object.defineProperty(process, "platform", { value: "linux" });
   });
 
   afterEach(() => {
@@ -15,35 +17,17 @@ describe("media", () => {
   });
 
   describe("pauseMedia", () => {
-    it("does nothing on unsupported platforms like Linux", async () => {
-      Object.defineProperty(process, "platform", { value: "linux" });
-
-      // Should complete without error
-      await expect(pauseMedia()).resolves.toBeUndefined();
-    });
-
-    it("completes without throwing on any platform", async () => {
-      // pauseMedia should never throw - it's designed to fail silently
+    it("completes without error on unsupported platforms", async () => {
       await expect(pauseMedia()).resolves.toBeUndefined();
     });
   });
 
   describe("resumeMedia", () => {
-    it("does nothing on unsupported platforms like Linux", async () => {
-      Object.defineProperty(process, "platform", { value: "linux" });
-
+    it("completes without error on unsupported platforms", async () => {
       await expect(resumeMedia()).resolves.toBeUndefined();
     });
 
-    it("completes without throwing on any platform", async () => {
-      // resumeMedia should never throw - it's designed to fail silently
-      await expect(resumeMedia()).resolves.toBeUndefined();
-    });
-
-    it("clears internal state after resume", async () => {
-      Object.defineProperty(process, "platform", { value: "linux" });
-
-      // Call resume twice - should not cause issues
+    it("can be called multiple times safely", async () => {
       await resumeMedia();
       await resumeMedia();
       // No error means success
@@ -51,9 +35,7 @@ describe("media", () => {
   });
 
   describe("withMediaControl", () => {
-    it("calls and returns result from the wrapped function", async () => {
-      Object.defineProperty(process, "platform", { value: "linux" });
-
+    it("calls the wrapped function and returns its result", async () => {
       const fn = vi.fn().mockResolvedValue("result");
 
       const result = await withMediaControl(fn);
@@ -63,8 +45,6 @@ describe("media", () => {
     });
 
     it("returns complex objects from wrapped function", async () => {
-      Object.defineProperty(process, "platform", { value: "linux" });
-
       const result = await withMediaControl(async () => {
         return { data: "test", count: 42 };
       });
@@ -73,47 +53,43 @@ describe("media", () => {
     });
 
     it("propagates errors from the wrapped function", async () => {
-      Object.defineProperty(process, "platform", { value: "linux" });
+      await expect(
+        withMediaControl(async () => {
+          throw new Error("TTS failed");
+        })
+      ).rejects.toThrow("TTS failed");
+    });
 
-      const error = new Error("Function failed");
+    it("waits 300ms before resuming media", async () => {
+      const start = Date.now();
+
+      await withMediaControl(async () => "done");
+
+      const elapsed = Date.now() - start;
+      expect(elapsed).toBeGreaterThanOrEqual(290); // Allow tolerance
+    });
+
+    it("still waits and resumes even when wrapped function throws", async () => {
+      const start = Date.now();
 
       await expect(
         withMediaControl(async () => {
-          throw error;
+          throw new Error("Failed");
         })
-      ).rejects.toThrow("Function failed");
-    });
+      ).rejects.toThrow("Failed");
 
-    it("works with sync-returning async functions", async () => {
-      Object.defineProperty(process, "platform", { value: "linux" });
-
-      const result = await withMediaControl(async () => "sync-value");
-
-      expect(result).toBe("sync-value");
+      const elapsed = Date.now() - start;
+      // Delay still happened (finally block executed)
+      expect(elapsed).toBeGreaterThanOrEqual(290);
     });
 
     it("handles void-returning functions", async () => {
-      Object.defineProperty(process, "platform", { value: "linux" });
-
       const fn = vi.fn().mockResolvedValue(undefined);
 
       const result = await withMediaControl(fn);
 
       expect(result).toBeUndefined();
       expect(fn).toHaveBeenCalled();
-    });
-
-    it("waits before resuming media (delay exists)", async () => {
-      Object.defineProperty(process, "platform", { value: "linux" });
-
-      const start = Date.now();
-
-      await withMediaControl(async () => "done");
-
-      const elapsed = Date.now() - start;
-
-      // Should take at least 300ms due to the built-in delay
-      expect(elapsed).toBeGreaterThanOrEqual(290); // Allow some tolerance
     });
   });
 });

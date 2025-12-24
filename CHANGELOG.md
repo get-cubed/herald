@@ -1,4 +1,9 @@
 # Changelog
+## [1.11.0](https://github.com/al3xjohnson/herald/compare/v1.10.1...v1.11.0) (2025-12-24)
+
+
+### Features
+* remove deprecated on-permission-request hook files ([6c8383e](https://github.com/al3xjohnson/herald/commit/6c8383e))
 ## [1.10.1](https://github.com/al3xjohnson/herald/compare/v1.10.0...v1.10.1) (2025-12-24)
 
 ### Features

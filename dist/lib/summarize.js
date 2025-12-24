@@ -54,6 +54,8 @@ export async function summarizeWithClaude(text, maxWords, customPrompt) {
                 stdio: ["pipe", "pipe", "pipe"],
             });
             let output = "";
+            // Note: stderr is collected but not used currently. In the future, it could be logged
+            // for debugging purposes, but for now we silently ignore errors from the claude CLI.
             let _stderr = "";
             proc.stdout.on("data", (data) => {
                 output += data.toString();
