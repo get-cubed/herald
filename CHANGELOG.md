@@ -1,4 +1,6 @@
 # Changelog
+## [1.11.5](https://github.com/al3xjohnson/herald/compare/v1.11.4...v1.11.5) (2025-12-24)
+
 ## [1.11.4](https://github.com/al3xjohnson/herald/compare/v1.11.3...v1.11.4) (2025-12-24)
 
 ## [1.11.0](https://github.com/al3xjohnson/herald/compare/v1.10.1...v1.11.0) (2025-12-24)
