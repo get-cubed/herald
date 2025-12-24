@@ -1,4 +1,9 @@
 # Changelog
+## [1.7.0](https://github.com/al3xjohnson/herald/compare/v1.6.0...v1.7.0) (2025-12-24)
+
+
+### Features
+* replace release-please with PR-based version bumping ([63caf7e](https://github.com/al3xjohnson/herald/commit/63caf7e))
 
 ## [1.6.0](https://github.com/al3xjohnson/herald/compare/v1.5.0...v1.6.0) (2025-12-24)
 
