@@ -1,4 +1,9 @@
 # Changelog
+## [1.11.3](https://github.com/al3xjohnson/herald/compare/v1.11.2...v1.11.3) (2025-12-24)
+
+
+### Bug Fixes
+* add root-level plugin.json for marketplace discovery ([812a447](https://github.com/al3xjohnson/herald/commit/812a447))
 ## [1.11.2](https://github.com/al3xjohnson/herald/compare/v1.11.1...v1.11.2) (2025-12-24)
 
 
